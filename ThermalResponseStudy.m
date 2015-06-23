@@ -117,6 +117,9 @@ imagesc(Img_F1_flat); colormap(bone);
 % ----------------------------------------------------------------
 %% NOTES
 
+
+%{
+
 clc; close all; clear all; instrreset;
 
 devs = instrhwinfo('serial')
@@ -124,9 +127,6 @@ devs = instrhwinfo('serial')
 devs.SerialPorts
 
 
-
-
-%{.
 imaqreset; clc; close all; clear;
 
 
