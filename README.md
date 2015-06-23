@@ -1,5 +1,6 @@
-# thermal
-Thermal Imaging Experiments
+# thermal - Thermal Imaging Experiments
+
+<img src="http://camk2.com/pix/Tau2.png" width="300" border="10" />
 
 
 # Online Resources
