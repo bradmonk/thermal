@@ -1,7 +1,7 @@
 %% THERMAL RESPONSE STUDY BRAD
 
 clc; close all; clear;
-thisFolder=fileparts(which('ThermalResponseStudy_v2.m')); 
+thisFolder=fileparts(which('ThermalResponseStudy_Brad.m'));
 addpath(thisFolder);
 cd(thisFolder);
 
