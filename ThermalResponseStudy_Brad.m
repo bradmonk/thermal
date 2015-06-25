@@ -1,4 +1,4 @@
-%% THERMAL RESPONSE STUDY
+%% THERMAL RESPONSE STUDY BRAD
 
 clc; close all; clear;
 thisFolder=fileparts(which('ThermalResponseStudy_v2.m')); 
