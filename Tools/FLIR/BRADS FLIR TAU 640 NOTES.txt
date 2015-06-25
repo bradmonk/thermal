@@ -1,0 +1,29 @@
+FLIR Tau 640 longwave infrared (thermographic) imaging camera
+
+FLIR Tau Camera Link Expansion Board
+https://www.flirshop.com/product/tau-camera-link-expansion-board/Tau640-Accessories
+
+FLIR Tau VPC Module
+https://www.flirshop.com/product/tau-vpc-module/Tau640-Accessories
+
+
+GigE Vision as well as GenICam
+
+imaqhwinfo shows the available adaptors. There should be an Adaptor called ‚gige‘.
+
+
+http://cdn.cloud.flir.se/swdownload/assets/other/flir_device_drivers.zip
+
+
+http://cdn.cloud.flir.se/swdownload/assets/other/flir_device_drivers.zip
+
+
+javascript:download('','http://80.77.70.144/SwDownload/Assets/FLIR IR Camera Player/FLIR_IR_Camera_Player_2.3.3.zip', this);
+
+javascript:download('','http://cdn.cloud.flir.se/swdownload/assets/other/thermacam_connect_3.zip', this);
+
+
+javascript:download('','http://80.77.70.144/SwDownload/Assets/FLIR Researcher/eBUS 2.3.3.1743.zip', this);
+
+
+javascript:download('','http://80.77.70.144/SwDownload/Assets/FLIR Researcher/ThermaCAM Researcher 2.10 PRO.zip', this);
