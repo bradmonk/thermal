@@ -11,3 +11,7 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+
+artwork/*
+ScriptArchive/*
+Tools/*
