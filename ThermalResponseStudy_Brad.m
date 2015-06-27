@@ -16,38 +16,157 @@ freqCSminus = 350;
 toneCSplus = sin(2*pi*freqCSplus*Samples);
 toneCSminus = sin(2*pi*freqCSminus*Samples);
 
-CSplus = ones(1,20);                        % create 20 CS+ trials
-CSminus = zeros(1,20);                      % create 20 CS- trials
-randOrder =randsample([CSplus CSminus],40); % randomize trials
+
+ITItime = 24.0;
+TRtime = 8.0;
+SHtime = 0.5;
+
+CSplus_nTrials = 5;
+CSminus_nTrials = 5;
+
+CSplus = ones(1,CSplus_nTrials);                                 % create 20 CS+ trials
+CSminus = zeros(1,CSplus_nTrials);                               % create 20 CS- trials
+randOrder =randsample([CSplus CSminus],numel([CSplus CSminus])); % randomize trials
 
 
+
+
+
+%% IMPORT ART IMAGES
+%{
+artworkdir = dir('artwork');
+artfilenames = {artworkdir.name};
+
+art.regexp = '.*(art).*';
+art.imgs = artfilenames(~cellfun('isempty',regexp(artfilenames,art.regexp)));
+
+for nn = 1:numel(art.imgs)
+[I,map] = imread(art.imgs{nn});   % get image data from file
+iDUBs = im2double(I);
+Pixels = [512 NaN];         % resize all images to 512x512 pixels
+iDUBs = imresize(iDUBs, Pixels);
+iDUBs(iDUBs > 1) = 1;  % In rare cases resizing results in some pixel vals > 1
+IMGs{nn} = iDUBs;
+end
+
+fh1=figure('Position',[10 10 1200 900],'Color','w');
+hax1=axes('Position',[.07 .1 .8 .8],'Color','none');
+
+for nn = 1:numel(art.imgs)
+    figure(fh1); axes(hax1);
+    image(IMGs{nn})
+    %imshow(IMGs{nn})
+    axis off; axis image;
+    drawnow;
+    pause(2)
+end
+%}
 
 %% ACQUIRE IMAGE ACQUISITION DEVICE (THERMAL CAMERA) OBJECT
 
+Frames = {};            % create thermal vid frame container
+FramesTS = {};          % create thermal vid timestamp container
+
 % imaqtool
-vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % CHANGE THIS TO THERMAL DEVICE ID
+
+% vidObj = videoinput('winvideo', 1, 'UYVY_720x576');   % Thermal Cam (720x576)
+% vidObj = videoinput('winvideo', 1, 'UYVY_720x480');   % Thermal Cam (720x480)
+vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % iSight webcam
 vidsrc = getselectedsource(vidObj);
-diskLogger = VideoWriter([thisFolder '/thermalVid1.avi'],'Uncompressed AVI');
-vidObj.LoggingMode = 'disk&memory';
-vidObj.DiskLogger = diskLogger;
-vidObj.ROIPosition = [488 95 397 507];
+
+vidObj.LoggingMode = 'memory';
+% vidObj.LoggingMode = 'disk&memory';
+% vidObj.DiskLogger = VideoWriter([thisFolder '/thermalVid1.avi'],'Uncompressed AVI');
+% vidObj.ROIPosition = [488 95 397 507];
 vidObj.ReturnedColorspace = 'rgb';
 vidObjSource = vidObj.Source;
 
 % preview(vidObj);    pause(3);   stoppreview(vidObj);
 
-% TriggerRepeat is zero-based
-vidObj.TriggerRepeat = numel(randOrder) * 3 + 3;
+vidObj.TriggerRepeat = Inf;
 vidObj.FramesPerTrigger = 1;
 triggerconfig(vidObj, 'manual');
 
 start(vidObj);
 
 
+    % ---- DELETE
+    for nn = 1:10
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{end+1} = frame;
+    FramesTS{end+1} = ts;
+
+    pause(.5)
+    end
+
+    stop(vidObj); wait(vidObj);
+    clear('vidObj');
+
+    close all
+    for nn = 1:numel(Frames)
+        figure(1)
+        imagesc(Frames{nn})
+            axis image
+            drawnow
+            pause(.1)
+    end
+
+    return
+    % ---- DELETE
+
+
+%%
+
+% vidObj = videoinput('winvideo', 1, 'UYVY_720x576');   % Thermal Cam (720x576)
+% vidObj = videoinput('winvideo', 1, 'UYVY_720x480');   % Thermal Cam (720x480)
+vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % iSight webcam
+src = getselectedsource(vidObj);
+% src.AnalogVideoFormat = 'ntsc_m_j';
+vidObj.ReturnedColorspace = 'rgb';
+
+vidObj.LoggingMode = 'memory';
+
+
+
+vidObj.TriggerRepeat = Inf;
+vidObj.FramesPerTrigger = 1;
+triggerconfig(vidObj, 'manual');
+
+start(vidObj);
+
+
+    % ---- DELETE
+    for nn = 1:10
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{end+1} = frame;
+    FramesTS{end+1} = ts;
+
+    pause(.5)
+    end
+
+    stop(vidObj); wait(vidObj);
+    clear('vidObj');
+
+    close all
+    for nn = 1:numel(Frames)
+        figure(1)
+        imagesc(Frames{nn})
+            axis image
+            drawnow
+            pause(.1)
+    end
+
+    return
+    % ---- DELETE
+
+
+
+
 %% SETUP TIMESTAMP AND FRAME-CAPTURE VARS
 
-Frames = {};            % create thermal vid frame container
-FramesTS = {};          % create thermal vid timestamp container
+
 
 ThermalTime = clock;	% save timestamp
 StartTime = clock;      % get timestamp
@@ -73,19 +192,19 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
     Frames{end+1} = frame;
     FramesTS{end+1} = ts;
 
-    pause(9.5)
+    pause(TRtime-SHtime)
 
     % IF CS+ DELIVER SHOCK
     if randOrder(nn) 
 
         STT=0; tic;                 % start Shock Trial Timer (STT)
-        while (STT < .5)            % for the next .5 seconds...
+        while (STT < SHtime)        % for the next .5 seconds...
             disp('SHOCK!!!')        % evoke coulbourn shock device
             STT = STT + toc;        % update elapsed TrialTime
         end
 
     else
-        pause(.5)
+        pause(SHtime)
     end
 
     
@@ -96,19 +215,20 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
     Frames{end+1} = frame;
     FramesTS{end+1} = ts;
     
-    pause(15)
+    pause(ITItime/2)
 
     trigger(vidObj);
     [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
     Frames{end+1} = frame;
     FramesTS{end+1} = ts;
 
-    pause(15)
+    pause(ITItime/2)
     clc
 
 end; % END MAIN LOOP
 
 stop(vidObj); wait(vidObj);
+clear('vidObj');
 
 
 
