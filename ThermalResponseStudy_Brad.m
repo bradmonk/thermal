@@ -1,4 +1,4 @@
-%% THERMAL RESPONSE STUDY BRAD
+%% THERMAL RESPONSE STUDY ThermalResponseStudy_Brad.m
 
 clc; close all; clear;
 thisFolder=fileparts(which('ThermalResponseStudy_Brad.m'));
@@ -6,33 +6,180 @@ addpath(thisFolder);
 cd(thisFolder);
 
 
+%% TRIALS AND TIMING
+
+ITItime = 24.0;         % default = 24
+TRtime  = 8.0;          % default = 8
+SHtime  = 0.5;          % default = .5
+
+CSplus_nTrials  = 15;   % default = 15
+CSminus_nTrials = 15;   % default = 15
+
+TotTrials = CSplus_nTrials + CSminus_nTrials;
+CSplus    = ones(1,CSplus_nTrials);                % create 20 CS+ trials
+CSminus   = zeros(1,CSplus_nTrials);               % create 20 CS- trials
+randOrder =randsample([CSplus CSminus],TotTrials); % randomize trials
+
+
 %% CREATE CS+ OR CS- TONE OBJECTS
 
 SampleRate  = 10000;
-TimeValue   = 10;
+TimeValue   = TRtime;
 Samples     = 0:(1/SampleRate):TimeValue;
 freqCSplus 	= 600;
 freqCSminus = 350;
-toneCSplus = sin(2*pi*freqCSplus*Samples);
+toneCSplus  = sin(2*pi*freqCSplus*Samples);
 toneCSminus = sin(2*pi*freqCSminus*Samples);
 
 
-ITItime = 24.0;
-TRtime = 8.0;
-SHtime = 0.5;
 
-CSplus_nTrials = 5;
-CSminus_nTrials = 5;
+%% ACQUIRE IMAGE ACQUISITION DEVICE (THERMAL CAMERA) OBJECT
+% imaqtool
 
-CSplus = ones(1,CSplus_nTrials);                                 % create 20 CS+ trials
-CSminus = zeros(1,CSplus_nTrials);                               % create 20 CS- trials
-randOrder =randsample([CSplus CSminus],numel([CSplus CSminus])); % randomize trials
+% PREALLOCATE MEMORY FOR IMAGE DATA CONTAINERS
+FramesPerTrial = 3;
+nFrames = FramesPerTrial * TotTrials;
+Frames = repmat({uint8(zeros(720,1280,3))},1,nFrames);  % Frames{1xN}(720x1280x3)uint8
+FramesTS = repmat({clock},1,nFrames);
+
+% ACQUIRE IMAGING DEVICE AS vidObj
+% vidObj = videoinput('winvideo', 1, 'UYVY_720x576');  % Thermal Cam (UYVY_720x576 or UYVY_720x480)
+vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % iSight Cam
+vidsrc = getselectedsource(vidObj);
+
+vidObj.LoggingMode = 'memory';
+vidObj.ReturnedColorspace = 'rgb';
+
+vidObj.TriggerRepeat = Inf;
+vidObj.FramesPerTrigger = 1;
+triggerconfig(vidObj, 'manual');
+% src.AnalogVideoFormat = 'ntsc_m_j'; % UNCOMMENT WHEN USING winvideo
+% vidObj.ROIPosition = [488 95 397 507];
+% preview(vidObj); pause(3); stoppreview(vidObj);
+
+start(vidObj);
+
+
+%% START MAIN EXPERIMENT LOOP
+
+StartTime = clock;      % get timestamp
+ff = 1;                 % current frame
+
+for nn = 1:numel(randOrder)                 % loop over the 40 trials
+
+
+% START CONDITIONING TRIAL
+
+    % PLAY CS+ OR CS- TONE
+    if randOrder(nn)
+        sound(toneCSplus, SampleRate); 
+    else
+        sound(toneCSminus, SampleRate) 
+    end
+
+    % GET THERMAL CAM SNAPSHOT
+    Frames{ff}   = getsnapshot(vidObj);
+    FramesTS{ff} = clock; ff=ff+1;
+    
+
+    pause(TRtime-SHtime)
+
+    % IF CS+ DELIVER SHOCK
+    if randOrder(nn) 
+
+        tictoc=0; tic;              % start tic toc Trial Timer
+        while (tictoc < SHtime)     % for the next .5 seconds...
+            disp('SHOCK!!!')        % evoke coulbourn shock device
+            pause(.05)
+            tictoc = tictoc + toc;  % update elapsed TrialTime
+        end
+
+    else
+
+        tictoc=0; tic;              % start tic toc Trial Timer
+        while (tictoc < SHtime)     % for the next .5 seconds...
+            disp('NO SHOCK')        % skip coulbourn
+            pause(.05)
+            tictoc = tictoc + toc;  % update elapsed TrialTime
+        end
+    end
 
 
 
+% START INTER-TRIAL INTERVAL (ITI)
+
+    % GET THERMAL CAM SNAPSHOT
+    Frames{ff}   = getsnapshot(vidObj);
+    FramesTS{ff} = clock; ff=ff+1;
+    
+    pause(ITItime/2)
+
+    % GET THERMAL CAM SNAPSHOT
+    Frames{ff}   = getsnapshot(vidObj);
+    FramesTS{ff} = clock; ff=ff+1;
+
+    pause(ITItime/2)
+    clc
+
+end; % END MAIN LOOP
 
 
-%% IMPORT ART IMAGES
+
+%% STOP/CLEAR VIDEO OBJECT & PLAYBACK THERMAL VIDEO FRAMES
+
+stop(vidObj);
+wait(vidObj);
+clear('vidObj');
+
+close all
+for nn = 1:numel(Frames)
+    figure(1)
+    imagesc(Frames{nn})
+    axis image; pause(.1)
+end
+
+
+%% COMPARE THE EXPERIMENT'S THEORETICAL TIME VS ACTUAL TIME
+% This section of code compares the timestamps for when thermal image snapshots
+% were actually taken vs. when they should have theoretically been taken.
+% Due to variability in machine performance, it's unlikely these two sets of
+% time values will correspond 1:1; however, they should be fairly close. If there 
+% is large point-differences or a large systematic drift, steps should be taken 
+% to attenuate the timeing issues, or offset the drift programatically.
+
+% FramesTS{1} = [year month day hour minute seconds]
+for nn = 2:numel(FramesTS)
+    elapsedT(nn-1) = etime(FramesTS{nn},FramesTS{nn-1});
+end
+actual_elapsed_time = cumsum(elapsedT);
+actual_elapsed_time = [0 actual_elapsed_time];
+TR_ITI_ITI = [TRtime ITItime/2 ITItime/2];
+TR_ITI_ITI = repmat(TR_ITI_ITI,1,TotTrials);
+TR_ITI_ITI(end) = []; TR_ITI_ITI = [0 TR_ITI_ITI];
+theoretical_elapsed_time = cumsum(TR_ITI_ITI);
+format shortg; disp(actual_elapsed_time); disp(theoretical_elapsed_time)
+
+% PLOT THEORETICAL TIME VS ACTUAL TIME
+phActu = plot(actual_elapsed_time, theoretical_elapsed_time);
+    axlims = [0 theoretical_elapsed_time(end)+10];
+    set(gca,'XLim',axlims,'YLim',axlims); hold on;
+phTheo = plot(theoretical_elapsed_time, theoretical_elapsed_time);
+    leg1 = legend([phActu,phTheo],{'Actual Elapsed Time','Theoretical Elapsed Time'});
+    set(leg1, 'Location','NorthWest', 'Color', [1 1 1],'FontSize',14,'Box','off');
+
+
+
+%% SAVE EXPERIMENTAL DATASET TO HDD
+
+save('thermalData_S1.mat', 'Frames', 'FramesTS', 'randOrder');
+
+
+return
+
+
+%% ---------END MAIN SCRIPT------NOTES AND STASHED CODE BELOW-------------
+
+% IMPORT SLIDESHOW IMAGES
 %{
 artworkdir = dir('artwork');
 artfilenames = {artworkdir.name};
@@ -62,414 +209,42 @@ for nn = 1:numel(art.imgs)
 end
 %}
 
-%% ACQUIRE IMAGE ACQUISITION DEVICE (THERMAL CAMERA) OBJECT
 
-Frames = {};            % create thermal vid frame container
-FramesTS = {};          % create thermal vid timestamp container
-
-% imaqtool
-
-% vidObj = videoinput('winvideo', 1, 'UYVY_720x576');   % Thermal Cam (720x576)
-% vidObj = videoinput('winvideo', 1, 'UYVY_720x480');   % Thermal Cam (720x480)
-vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % iSight webcam
-vidsrc = getselectedsource(vidObj);
-
-vidObj.LoggingMode = 'memory';
-% vidObj.LoggingMode = 'disk&memory';
-% vidObj.DiskLogger = VideoWriter([thisFolder '/thermalVid1.avi'],'Uncompressed AVI');
-% vidObj.ROIPosition = [488 95 397 507];
-vidObj.ReturnedColorspace = 'rgb';
-vidObjSource = vidObj.Source;
-
-% preview(vidObj);    pause(3);   stoppreview(vidObj);
-
-vidObj.TriggerRepeat = Inf;
-vidObj.FramesPerTrigger = 1;
-triggerconfig(vidObj, 'manual');
-
-start(vidObj);
-
-
-    % ---- DELETE
-    for nn = 1:10
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
-    FramesTS{end+1} = ts;
-
-    pause(.5)
-    end
-
-    stop(vidObj); wait(vidObj);
-    clear('vidObj');
-
-    close all
-    for nn = 1:numel(Frames)
-        figure(1)
-        imagesc(Frames{nn})
-            axis image
-            drawnow
-            pause(.1)
-    end
-
-    return
-    % ---- DELETE
-
-
-%%
-
-% vidObj = videoinput('winvideo', 1, 'UYVY_720x576');   % Thermal Cam (720x576)
-% vidObj = videoinput('winvideo', 1, 'UYVY_720x480');   % Thermal Cam (720x480)
-vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720'); % iSight webcam
-src = getselectedsource(vidObj);
-% src.AnalogVideoFormat = 'ntsc_m_j';
-vidObj.ReturnedColorspace = 'rgb';
-
-vidObj.LoggingMode = 'memory';
-
-
-
-vidObj.TriggerRepeat = Inf;
-vidObj.FramesPerTrigger = 1;
-triggerconfig(vidObj, 'manual');
-
-start(vidObj);
-
-
-    % ---- DELETE
-    for nn = 1:10
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
-    FramesTS{end+1} = ts;
-
-    pause(.5)
-    end
-
-    stop(vidObj); wait(vidObj);
-    clear('vidObj');
-
-    close all
-    for nn = 1:numel(Frames)
-        figure(1)
-        imagesc(Frames{nn})
-            axis image
-            drawnow
-            pause(.1)
-    end
-
-    return
-    % ---- DELETE
-
-
-
-
-%% SETUP TIMESTAMP AND FRAME-CAPTURE VARS
-
-
-
-ThermalTime = clock;	% save timestamp
-StartTime = clock;      % get timestamp
-
-
-%% START MAIN EXPERIMENT LOOP
-
-for nn = 1:numel(randOrder)                 % loop over the 40 trials
-
-
-% 10-SECOND CONDITIONING TRIAL
-
-    % PLAY CS+ OR CS- TONE
-    if randOrder(nn)
-        sound(toneCSplus, SampleRate); 
-    else
-        sound(toneCSminus, SampleRate) 
-    end
-
-    % GET THERMAL CAM SNAPSHOT
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
-    FramesTS{end+1} = ts;
-
-    pause(TRtime-SHtime)
-
-    % IF CS+ DELIVER SHOCK
-    if randOrder(nn) 
-
-        STT=0; tic;                 % start Shock Trial Timer (STT)
-        while (STT < SHtime)        % for the next .5 seconds...
-            disp('SHOCK!!!')        % evoke coulbourn shock device
-            STT = STT + toc;        % update elapsed TrialTime
-        end
-
-    else
-        pause(SHtime)
-    end
-
-    
-% 30-SECOND ITI
-
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
-    FramesTS{end+1} = ts;
-    
-    pause(ITItime/2)
-
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
-    FramesTS{end+1} = ts;
-
-    pause(ITItime/2)
-    clc
-
-end; % END MAIN LOOP
-
-stop(vidObj); wait(vidObj);
-clear('vidObj');
-
-
-
-%% PLAYBACK THERMAL VIDEO FRAMES & SAVE DATA
-
-close all
-for nn = 1:numel(Frames)
-    figure(1)
-    imagesc(Frames{nn})
-        axis image
-        drawnow
-        pause(.1)
-end
-
-save('thermalData_S1.mat', 'Frames', 'FramesTS', 'randOrder');
-
-return
-
-%% NOTES
-
+% EXAMPLE SCRIPT FLOW-CONTROL USING A TIMER CALLBACK FUNCTION
 %{
-
-%% -- PLAYBACK THERMAL VIDEO
-
-
-ThermalDataVid = VideoReader('ThermalDataSub1.avi');
-get(ThermalDataVid)
-vidWidth = ThermalDataVid.Width;
-vidHeight = ThermalDataVid.Height;
-
-mov = struct('cdata',zeros(vidHeight,vidWidth,3,'uint8'),'colormap',[]);
-
-k = 1;
-while hasFrame(ThermalDataVid)
-    mov(k).cdata = readFrame(ThermalDataVid);
-    k = k+1;
-end
-
-hf = figure;
-set(hf,'position',[150 150 vidWidth vidHeight]);
-movie(hf,mov,1,ThermalDataVid.FrameRate);
-
-%% -- ANALYZE THERMAL VIDEO DATA (TBD)
-
-Img_F1 = mov(1).cdata;
-Img_F1_dub = im2double(frame1);
-Img_F1_flat = (Img_F1_dub(:,:,1) + Img_F1_dub(:,:,2) + Img_F1_dub(:,:,3)) ./ 3;
-
-    fh1 = figure; set(fh1,'position',[150 50 vidWidth vidHeight*2],'Color','w');
-    hax1=axes('Position',[.05 .52 .95 .45],'Color','none');
-    hax2=axes('Position',[.05 .05 .95 .45],'Color','none');
-    
-    axes(hax1)
-image(Img_F1);  % imshow(Img_F1);
-    set(hax1,'XTickLabel',[],'XTick',[],'YTickLabel',[],'YTick',[])
-
-    axes(hax2)
-imagesc(Img_F1_flat); colormap(bone);
-    set(hax1,'XTickLabel',[],'XTick',[],'YTickLabel',[],'YTick',[])
-
-
-
-%------------------------
-clc; close all; clear
-thisFolder=fileparts(which('ThermalResponseStudy.m'));
-
-% imageDevicesInfo = imaqhwinfo;    % info about all system image acquisition devices
-% devs = instrhwinfo('serial')
-
-vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720');
-vidsrc = getselectedsource(vidObj);
-diskLogger = VideoWriter([thisFolder '/thermalVid1.avi'],'Uncompressed AVI');
-vidObj.LoggingMode = 'disk&memory';
-vidObj.DiskLogger = diskLogger;
-vidObj.ROIPosition = [488 95 397 507];
-vidObj.ReturnedColorspace = 'rgb';
-vidObjSource = vidObj.Source;
-
-
-% preview(vidObj);    pause(3);   stoppreview(vidObj);
-
-
-% TriggerRepeat is zero-based (i.e. one less than number of triggers)
-vidObj.TriggerRepeat = 9;
-vidObj.FramesPerTrigger = 1;
-
-
-% triggerinfo(v)
-% trigger(vidObj) is only valid when TriggerType is set to manual.
-% if triggerconfig(vidObj,'manual'); trigger(vidObj); end
-
-% triggerconfig(vidObj, 'immediate');
-triggerconfig(vidObj, 'manual');
-
-% The trigger function can be called by a video input object's event callback.
-% vidObj.StartFcn = @trigger;
-
-% When an acquisition is started, obj performs the following operations:
-% 
-% 1. Transfers the object's configuration to the associated hardware.
-% 2. Executes the object's StartFcn callback.
-% 3. Sets the object's Running property to 'On'.
-%
-% If the object's StartFcn errors, the hardware is never started 
-% and the object's Running property remains 'Off'.
-% 
-% The start event is recorded in the object's EventLog property.
-% 
-% An image acquisition object stops running when one of the following conditions is met:
-% 
-% 1. The stop function is issued.
-% 2. The requested number of frames is acquired. This occurs when
-% 3. FramesAcquired = FramesPerTrigger * (TriggerRepeat + 1)
-%    where FramesAcquired, FramesPerTrigger, and TriggerRepeat 
-%    are properties of the video input object.
-% 4. A run-time error occurs.
-% 5. The object's Timeout value is reached.
-
-start(vidObj);
-for nn = 1:vidObj.TriggerRepeat
-
-    trigger(vidObj);
-    [frames, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-
-    vid{nn} = frames;
-
-    pause(.01)
-end
-stop(vidObj); wait(vidObj);
-
-close all
-for nn = 1:vidObj.TriggerRepeat
-    figure(1)
-    imagesc(vid{nn})
-        axis image
-        drawnow
-        pause(.1)
-end
-
-save('thermalVid1.mat', 'vid');
-
-
-%}
-
-%{
-
-
-% stop(vidObj)
-% vid = getdata(vidObj);
-% imagesc(vid(:,:,1:3))
-%     axis image
-% save('thermalVid1.mat', 'vid');
-% clear vidObj;
-
-
-%%
-% Visualization
-figure(1)
-vv=0;
-while (vv < vidObj.FramesPerTrigger)
-
-    imagesc(peekdata(vidObj,1));
-    caxis([49000 52000]);
-    pause(0.1);
-
-    vv=vidObj.FramesAcquired;
-end
-% waitDuration = 10;
-% wait(vidObj, waitDuration);getdata function
-
-% get frames and relative timestamps
-[frames, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-
-
-figure; % Plot frame timestamps
-plot(ts, '.');
-
-stop(vidObj)
-
-
-
-%%---------
-
-clc; close all; clear all; instrreset;
-
-devs = instrhwinfo('serial')
-
-devs.SerialPorts
-
-
-imaqreset; clc; close all; clear;
-
-
-% OUT = imaqhwinfo;
-% vidObj = videoinput('macvideo', 1);
-vidObj = videoinput('macvideo', 1);
-
-vidObj.SelectedSourceName = 'iSightMac'
-
-vidObjSource = vidObj.Source;
-
-% triggerinfo(v)
-triggerconfig(vidObjSource, 'manual');
-% triggerconfig(v, 'immediate');
-
-samplenr=10;
-vidObj.FramesPerTrigger = samplenr;
-vidObj.TriggerRepeat = 1;
-
-
-% start videoinput and wait for acquisition to complete
-start(vidObj);
-
-% % If triggerconfig(v,'manual'): 
-% % trigger(v) is only valid when TriggerType is set to manual.
-pause(2);
-trigger(vidObj);
-
-
-
-% Visualization
-figure(1)
-i=0;
-while (i<samplenr)
-
-imagesc(peekdata(vidObj,1));
-caxis([49000 52000]);
-pause(0.1);
-
-i=vidObj.FramesAcquired;
-end
-% waitDuration = 10;
-% wait(vidObj, waitDuration);getdata function
-
-% get frames and relative timestamps
-[frames, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-
-% Plot frame timestamps
-figure;
-plot(ts, '.');
-
-stop(v)
-
+function timerEx
+% inputs
+t = 1:0.05:25;
+% time-dependent functions
+sin_t = sin(t);
+cos_t = cos(t);
+% loop for time-dependent measurements
+n = numel(t);
+figure, xlim([min(t) max(t)]), ylim([-2 2]);
+hold on
+%Plot first point, store handles so we can update the data later.
+h(1) = plot (t(1), sin_t(1));
+h(2) = plot (t(1), cos_t(1));
+%Build timer
+T = timer('Period',0.01,... %period
+          'ExecutionMode','fixedRate',... %{singleShot,fixedRate,fixedSpacing,fixedDelay}
+          'BusyMode','drop',... %{drop, error, queue}
+          'TasksToExecute',n-1,...          
+          'StartDelay',0,...
+          'TimerFcn',@tcb,...
+          'StartFcn',[],...
+          'StopFcn',[],...
+          'ErrorFcn',[]);
+% Start it      
+start(T);
+      %Nested function!  Has access to variables in above workspace
+      function tcb(src,evt)
+          %What task are we on?  Use this instead of for-loop variable ii
+          taskEx = get(src,'TasksExecuted');
+          %Update the x and y data.
+          set(h(1),'XData',t(1:taskEx),'YData',sin_t(1:taskEx));
+          set(h(2),'XData',t(1:taskEx),'YData',cos_t(1:taskEx));
+          drawnow; %force event queue flush
+      end
+  end
 %}
