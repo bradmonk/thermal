@@ -12,6 +12,11 @@
 vignettes/*.html
 vignettes/*.pdf
 
+# Local-only directories
 artwork/*
 ScriptArchive/*
 Tools/*
+
+# data / non-code
+.mat
+.avi
