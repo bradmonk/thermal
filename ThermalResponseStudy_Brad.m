@@ -82,7 +82,7 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
     FramesTS{ff} = clock; ff=ff+1;
     
 
-    pause(TRtime-SHtime)
+    pause(TRtime-SHtime);          % java.lang.Thread.sleep((TRtime-SHtime)*1000);
 
     % IF CS+ DELIVER SHOCK
     if randOrder(nn) 
@@ -90,7 +90,7 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
         tictoc=0; tic;              % start tic toc Trial Timer
         while (tictoc < SHtime)     % for the next .5 seconds...
             disp('SHOCK!!!')        % evoke coulbourn shock device
-            pause(.05)
+            pause(.05);             % java.lang.Thread.sleep(.05*1000);
             tictoc = tictoc + toc;  % update elapsed TrialTime
         end
 
@@ -99,7 +99,7 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
         tictoc=0; tic;              % start tic toc Trial Timer
         while (tictoc < SHtime)     % for the next .5 seconds...
             disp('NO SHOCK')        % skip coulbourn
-            pause(.05)
+            pause(.05);             % java.lang.Thread.sleep(.05*1000);
             tictoc = tictoc + toc;  % update elapsed TrialTime
         end
     end
@@ -112,13 +112,13 @@ for nn = 1:numel(randOrder)                 % loop over the 40 trials
     Frames{ff}   = getsnapshot(vidObj);
     FramesTS{ff} = clock; ff=ff+1;
     
-    pause(ITItime/2)
+    pause(ITItime/2);              % java.lang.Thread.sleep(ITItime/2*1000);
 
     % GET THERMAL CAM SNAPSHOT
     Frames{ff}   = getsnapshot(vidObj);
     FramesTS{ff} = clock; ff=ff+1;
 
-    pause(ITItime/2)
+    pause(ITItime/2);              % java.lang.Thread.sleep(ITItime/2*1000);
     clc
 
 end; % END MAIN LOOP
@@ -250,4 +250,33 @@ start(T);
           drawnow; %force event queue flush
       end
   end
+
+
+
+
+
+
+
+%%
+% Some initializations
+timesToRun = 100;
+duration = 0.25;  % [secs]
+ 
+% Measure Matlab's pause() accuracy
+tPause(timesToRun) = 0;  % pre-allocate
+for idx = 1 : timesToRun
+   tic
+   pause(duration);                        % Note: pause() accepts [Secs] duration
+   tPause(idx) = abs(toc-duration);
+end
+ 
+% Measure Java's sleep() accuracy
+tSleep(timesToRun) = 0;  % pre-allocate
+for idx=1 : timesToRun
+   tic
+   java.lang.Thread.sleep(duration*1000);  % Note: sleep() accepts [mSecs] duration
+   tSleep(idx) = abs(toc-duration);
+end
+
+%%
 %}
