@@ -8,12 +8,12 @@ cd(thisFolder);
 
 %% TRIALS AND TIMING
 
-ITItime = 24.0;         % default = 24
+ITItime = 4.0;         % default = 24
 TRtime  = 8.0;          % default = 8
 SHtime  = 0.5;          % default = .5
 
-CSplus_nTrials  = 15;   % default = 15
-CSminus_nTrials = 15;   % default = 15
+CSplus_nTrials  = 5;   % default = 15
+CSminus_nTrials = 5;   % default = 15
 
 TotTrials = CSplus_nTrials + CSminus_nTrials;
 CSplus    = ones(1,CSplus_nTrials);                % create 20 CS+ trials
@@ -148,22 +148,25 @@ end
 % to attenuate the timeing issues, or offset the drift programatically.
 
 % FramesTS{1} = [year month day hour minute seconds]
+THEO_ET = [0 repmat([TRtime ITItime/2 ITItime/2],1,TotTrials)];THEO_ET(end)=[];
+ACTU_ET = zeros(size(THEO_ET));
+
 for nn = 2:numel(FramesTS)
-    elapsedT(nn-1) = etime(FramesTS{nn},FramesTS{nn-1});
+    ACTU_ET(nn) = etime(FramesTS{nn},FramesTS{nn-1});
 end
-actual_elapsed_time = cumsum(elapsedT);
-actual_elapsed_time = [0 actual_elapsed_time];
-TR_ITI_ITI = [TRtime ITItime/2 ITItime/2];
-TR_ITI_ITI = repmat(TR_ITI_ITI,1,TotTrials);
-TR_ITI_ITI(end) = []; TR_ITI_ITI = [0 TR_ITI_ITI];
-theoretical_elapsed_time = cumsum(TR_ITI_ITI);
-format shortg; disp(actual_elapsed_time); disp(theoretical_elapsed_time)
+
+ACTUAL_ET = cumsum(ACTU_ET);
+THEORY_ET = cumsum(THEO_ET);
+
+% DISPLAY THEORETICAL TIME VS ACTUAL TIME
+disp('ACTUAL_ET'); disp(round(ACTUAL_ET));
+disp('THEORY_ET'); disp(THEORY_ET)
 
 % PLOT THEORETICAL TIME VS ACTUAL TIME
-phActu = plot(actual_elapsed_time, theoretical_elapsed_time);
-    axlims = [0 theoretical_elapsed_time(end)+10];
+phActu = plot(ACTUAL_ET, THEORY_ET);
+    axlims = [0 THEORY_ET(end)+10];
     set(gca,'XLim',axlims,'YLim',axlims); hold on;
-phTheo = plot(theoretical_elapsed_time, theoretical_elapsed_time);
+phTheo = plot(THEORY_ET, THEORY_ET);
     leg1 = legend([phActu,phTheo],{'Actual Elapsed Time','Theoretical Elapsed Time'});
     set(leg1, 'Location','NorthWest', 'Color', [1 1 1],'FontSize',14,'Box','off');
 

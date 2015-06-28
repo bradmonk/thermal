@@ -18,5 +18,5 @@ ScriptArchive/*
 Tools/*
 
 # data / non-code
-.mat
-.avi
+*.mat
+*.avi
