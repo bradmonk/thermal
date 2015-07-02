@@ -1,8 +1,5 @@
-%% THERMAL RESPONSE STUDY BRAD
+%% THERMAL RESPONSE STUDY SCOTT
 
-% PASTE YOUR CODE HERE
-
-%%
 %%%%%% This script is for Day 1 of the fear conditioning experiment %%%%%%
 close all; clear 
 
