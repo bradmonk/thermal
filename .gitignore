@@ -20,3 +20,4 @@ Tools/*
 # data / non-code
 *.mat
 *.avi
+*.m~

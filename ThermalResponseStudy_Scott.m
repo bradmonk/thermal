@@ -9,7 +9,9 @@ imaqreset
 % Randomize the seed
 rand('seed',sum(100*clock));
 
-this=fileparts(which('ThermalResponseStudy_Scott.m')); addpath(this); cd(this);
+% cd(fileparts(which(mfilename)));
+this=fileparts(which('ThermalResponseStudy_Scott.m')); 
+addpath(this); cd(this);
 
 % Enter subject number info
 subject_id = input('What is the subject number? ');
