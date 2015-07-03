@@ -9,9 +9,7 @@ imaqreset
 % Randomize the seed
 rand('seed',sum(100*clock));
 
-thisFolder=fileparts(which('ThermalImaging_Scott.m'));
-addpath(thisFolder);
-cd(thisFolder);
+this=fileparts(which('ThermalResponseStudy_Scott.m')); addpath(this); cd(this);
 
 % Enter subject number info
 subject_id = input('What is the subject number? ');
@@ -19,7 +17,13 @@ subject_id = sprintf('%d',subject_id);
 sub_dir = [pwd,'/data/', 's' subject_id];
 
 if ~exist(sub_dir)
-    fprintf('\n You either did not first initialize the data for this subject or are in the wrong directory!!!!!!!! Press control+c to re-do \n\n');
+
+  warn1 = sprintf(' Execution aborted. Subdirectory ''./data\'' not found \n');
+  warn2 = sprintf(' Potential reasons for error: \n');
+  warn3 = sprintf('   1. You are currently in the wrong working directory \n');
+  warn4 = sprintf('   2. You have not created a subject folder: ''./data\'' \n');
+  error([warn1 warn2 warn3 warn4])
+
 end
 
 %% Experiment parameters
