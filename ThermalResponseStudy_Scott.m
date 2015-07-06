@@ -175,7 +175,7 @@ for trial = 1:length(trial_data)
     trial_data.tone_start_real(trial,1) = trial_data.tone_start(trial,1) - startTime;
     
     % Present the sound
-    if strcmp(trial_data.stim(trial,1),'S1')
+    if trial_data.stim(trial,1) == 1
         sound(toneS1, SampleRate);
         % GET THERMAL CAM SNAPSHOT
         trigger(vidObj);
