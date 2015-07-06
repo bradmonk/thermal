@@ -73,16 +73,16 @@ trial_data.phase_num(acq_trials+1:total_trials,1) = 2;
 
 % Create balanced number of CS+ and CS-
 for i = 1:2:length(trial_data)
-    trial_data.stim(i:2:length(trial_data),1) = {'S1'};
-    trial_data.stim(i+1:2:length(trial_data),1) = {'S2'};
+    trial_data.stim(i:2:length(trial_data),1) = 1;
+    trial_data.stim(i+1:2:length(trial_data),1) = 0;
 end
 
 % Randomize with constraints (no more than 3 CS+ or 3 CS- in a row)
 for phase_num = 1:2
     while true
         mix = randperm_chop(trial_data(trial_data.phase_num==phase_num,:));
-        [streak_start, S1] = find_longest_streak(strcmp('S1', mix.stim));
-        [streak_start, S2] = find_longest_streak(strcmp('S2', mix.stim));
+        [streak_start, S1] = find_longest_streak(mix.stim == 1);
+        [streak_start, S2] = find_longest_streak(mix.stim == 0);
         if S1 < 4 && S2 < 4
             break
         end
