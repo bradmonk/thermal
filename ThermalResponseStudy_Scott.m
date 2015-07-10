@@ -10,8 +10,8 @@ imaqreset
 rand('seed',sum(100*clock));
 
 % cd(fileparts(which(mfilename)));
-this=fileparts(which('ThermalResponseStudy_Scott.m')); 
-addpath(this); cd(this);
+% this=fileparts(which('ThermalResponseStudy_Scott.m')); 
+% addpath(this); cd(this);
 
 % Enter subject number info
 subject_id = input('What is the subject number? ');
@@ -29,7 +29,7 @@ if ~exist(sub_dir)
 end
 
 %% Experiment parameters
-shock_dur = 0.5;
+% shock_dur = 0.5;
 SampleRate = 10000;
 TimeValue = 2;
 TimeValueShock = TimeValue - 0.5;
@@ -45,7 +45,7 @@ shock = 0;
 
 % Initialize shock
 if shock == 1
-    send_to_coulbourn('init');
+    send_to_daq('initialize'); % send to EMG recording machine           
 end
 
 keypad_index = 0;
@@ -99,8 +99,8 @@ trial_data.trial(1:length(trial_data)) = 1:length(trial_data);
 
 utilpath = fullfile(matlabroot, 'toolbox', 'imaq', 'imaqdemos', 'helper');
 addpath(utilpath);
-vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720');
-% vidObj = videoinput('winvideo', 1, 'UYVY_720x480'); % default
+% vidObj = videoinput('macvideo', 1, 'YCbCr422_1280x720');
+vidObj = videoinput('winvideo', 1, 'UYVY_720x480'); % default
 src = getselectedsource(vidObj);
 % src.AnalogVideoFormat = 'ntsc_m_j';
 
@@ -117,11 +117,11 @@ src = getselectedsource(vidObj);
 vidObj.LoggingMode = 'memory';
 % vidObj.DiskLogger = file;
 % vidObj.ROIPosition = [488 95 397 507];
-% vidObj.ReturnedColorspace = 'rgb';
+vidObj.ReturnedColorspace = 'rgb';
 % vidObjSource = vidObj.Source;
 % preview(vidObj);    pause(3);   stoppreview(vidObj);
 % TriggerRepeat is zero-based
-vidObj.TriggerRepeat = total_trials * 3 + 3;
+vidObj.TriggerRepeat = total_trials * 6 + 6;
 vidObj.FramesPerTrigger = 1;
 triggerconfig(vidObj, 'manual');
 
@@ -132,7 +132,7 @@ start(vidObj);
 % clear vidObj
 
 % Once a key is pressed, the experiment will begin
-main_keyboard_index = input_device_by_prompt('Please press any key on the main keyboard\n', 'keyboard');
+% main_keyboard_index = input_device_by_prompt('Please press any key on the main keyboard\n', 'keyboard');
 disp('Starting experiment now...');
 
 Frames = {};            % create thermal vid frame container
@@ -178,23 +178,40 @@ for trial = 1:length(trial_data)
     if trial_data.stim(trial,1) == 1
         sound(toneS1, SampleRate);
         % GET THERMAL CAM SNAPSHOT
+        pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
         Frames{end+1} = frame;
         FramesTS{end+1} = ts;
-        while GetSecs < trial_data.tone_start(trial,1) + TimeValue
-            if strcmp(trial_data.phase(trial,1),'Acquisition')
-                while GetSecs > trial_data.tone_start(trial,1) + TimeValueShock & GetSecs < trial_data.tone_start(trial,1) + TimeValue
-                    fprintf('Shock ON!\n');
-                end
-            end
+        pause(1)
+        trigger(vidObj);
+        [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+        Frames{end+1} = frame;
+        FramesTS{end+1} = ts;
+        pause(1)
+        trigger(vidObj);
+        [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+        Frames{end+1} = frame;
+        FramesTS{end+1} = ts;
+        while GetSecs < trial_data.tone_start(trial,1) + TimeValue  
         end
-        if strcmp(trial_data.phase(trial,1),'Acquisition')
-            fprintf('----------Shock OFF----------\n');
+        if strcmp(trial_data.phase(trial,1),'Acquisition') && shock == 1
+            test_daq; % Trigger shock
         end
     else
         sound(toneS2, SampleRate);
         % GET THERMAL CAM SNAPSHOT
+       pause(1)
+        trigger(vidObj);
+        [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+        Frames{end+1} = frame;
+        FramesTS{end+1} = ts;
+        pause(1)
+        trigger(vidObj);
+        [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+        Frames{end+1} = frame;
+        FramesTS{end+1} = ts;
+        pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
         Frames{end+1} = frame;
@@ -211,14 +228,13 @@ for trial = 1:length(trial_data)
     trial_data.tone_time(trial,1) = trial_data.tone_end(trial,1) - trial_data.tone_start(trial,1);
     
     %% Save data
-    outfile=sprintf('FC_NEW_Day1_s%s_%s.mat', subject_id, date);
+    outfile=sprintf('FC_Day1_s%s_%s.mat', subject_id, date);
     save([sub_dir, '/' outfile],'trial_data');
 end
 
 stop(vidObj); wait(vidObj);
 
 %% PLAYBACK THERMAL VIDEO FRAMES & SAVE DATA
-
 close all
 for nn = 1:numel(Frames)
     figure(1)
@@ -228,13 +244,9 @@ for nn = 1:numel(Frames)
     pause(.1)
 end
 
-%% Save data
+%% SAVE DATA
 outfile=sprintf('FC_NEW_Day1_s%s_%s.mat', subject_id, date);
 save([sub_dir, '/' outfile],'trial_data', 'Frames', 'FramesTS');
 
-return
-
-
-
-
+% return
 
