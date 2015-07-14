@@ -390,6 +390,16 @@ ROIMx_ShockTrials = ROIMx(shock_trials_Ar);
 ROIMx_NonShockTrials = ROIMx(~shock_trials_Ar);
 
 
+%%
+
+for nn = 1:numel(ROIMx_ShockTrials)
+
+ROIMx_ShockTrials = ROIMx(shock_trials_Ar);
+
+end
+
+
+
 %% -- Boxplot & Histogram
 
 close all
