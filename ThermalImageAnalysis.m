@@ -392,52 +392,63 @@ ROIMx_NonShockTrials = ROIMx(~shock_trials_Ar);
 
 %%
 
-for nn = 1:numel(ROIMx_ShockTrials)
 
-ROIMx_ShockTrials = ROIMx(shock_trials_Ar);
+
+
+
+
+
+%%
+mean_ROIMx_ShockTrials = [];
+mean_ROIMx_NonShockTrials  = [];
+
+mm=1;
+for nn = 3:5:numel(ROIMx_ShockTrials)
+
+mean_ROIMx_ShockTrials(mm) = mean(ROIMx_ShockTrials{nn}(ROIMx_ShockTrials{nn}>0));
+mean_ROIMx_NonShockTrials(mm) = mean(ROIMx_NonShockTrials{nn}(ROIMx_NonShockTrials{nn}>0));
+mm=mm+1;
 
 end
 
 
+    smeth = {'moving','lowess','loess','sgolay','rlowess','rloess'};
+    degSm = .25; typSm = 5;
+    smean_ROIMx_ShockTrials = smooth(mean_ROIMx_ShockTrials,degSm,smeth{typSm});
+    smean_ROIMx_NonShockTrials = smooth(mean_ROIMx_NonShockTrials,degSm,smeth{typSm});
 
-%% -- Boxplot & Histogram
+
+fh1=figure('Position',[600 450 1000 500],'Color','w');
+hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
+hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+
+plot(hax1,[smean_ROIMx_ShockTrials smean_ROIMx_NonShockTrials])
+plot(hax2,[mean_ROIMx_ShockTrials' mean_ROIMx_NonShockTrials'])
+
+% -- Boxplot & Histogram
 
 close all
 fh1=figure('Position',[600 450 1000 500],'Color','w');
 hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
 hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
 
-    boxplot(hax1,Hi2LoIncPixArray ...
+    boxplot(hax1,[mean_ROIMx_ShockTrials' mean_ROIMx_NonShockTrials'] ...
 	,'notch','on' ...
 	,'whisker',1 ...
 	,'widths',.8 ...
 	,'factorgap',[0] ...
 	,'medianstyle','target');
-	%set(gca,'XTickLabel',{' '},'Position',[.04 .05 .25 .9])
+	set(hax1,'XTickLabel',{'ShockTrials','NonShockTrials'},'Position',[.04 .05 .25 .9])
     pause(2)
 
     % axes(GUIfh.Children(1).Children(1));
-hist(hax2,Hi2LoIncPixArray(:),100);
+hist(hax2,mean_ROIMx_ShockTrials(:),15);
+hold on
+hist(hax2,mean_ROIMx_NonShockTrials(:),15);
+    h = findobj(gca,'Type','patch');
+    h(2).FaceColor = [0 0.5 0.5];
+    h(2).EdgeColor = 'w';
 		pause(2)
-
-
-
-
-%% -- VIEW ORIGINAL, SNR MASK, AND TARGET IMAGES
-
-close all
-fh1=figure('Position',[600 450 1000 500],'Color','w');
-hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
-hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
-
-        axes(hax1)
-    imagesc(iDUB);
-        %axis(HaxThresh,'image')
-
-        axes(hax2)
-    imagesc(IncRawMxP);
-
-     colormap('jet');
 
 
 
@@ -595,15 +606,6 @@ spf0=sprintf('Taking average of background pixels');
 
 
 %}
-
-
-
-
-
-
-
-
-
 
 
 %%
