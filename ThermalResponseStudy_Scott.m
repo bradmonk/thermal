@@ -87,6 +87,16 @@ for i = 1:total_trials
     end
 end
 
+for i = 1:total_trials
+    if trial_data.stim(i,1) == 0
+        trial_data.trial_type(i,1) = 1; % CS- trials
+    elseif trial_data.stim(i,1) == 1 && trial_data.shock(i,1) == 1 
+        trial_data.trial_type(i,1) = 2; % CS+ paired trials
+    else
+        trial_data.trial_type(i,1) = 3; % CS+ unpaired trials
+    end
+end        
+
 % Randomize with constraints (no more than 3 CS+ or 3 CS- in a row)
 for phase_num = 1:2
     while true
@@ -101,6 +111,22 @@ for phase_num = 1:2
 end
 
 trial_data.trial(1:length(trial_data)) = 1:length(trial_data);
+
+FrameOrd = []; % Frame order vec
+CSm = [1 2 3 4 5 6 7 8]; % CS- codes
+CSpp = [9 10 11 12 13 14 15 16]; % CS+ paired codes
+CSpu = [17 18 19 20 21 22 23 24]; % CS+ unpaired codes
+
+% 1 = CS-; 2 = CS+ paired; 3 = CS+ unpaired
+for i = 1:acq_trials
+    if trial_data.trial_type(i,1) == 1 % CS- trials
+        FrameOrd = [FrameOrd CSm];
+    elseif trial_data.trial_type(i,1) == 2 % CS+ paired trials
+        FrameOrd = [FrameOrd CSpp];
+    else % CS+ unpaired trials
+        FrameOrd = [FrameOrd CSpu];
+    end
+end
 
 %% ACQUIRE IMAGE ACQUISITION DEVICE (THERMAL CAMERA) OBJECT
 
@@ -157,45 +183,6 @@ startTime = GetSecs;
 ff=1;
 %% Start trial loop
 for trial = 1:length(trial_data)
-
-    % Get exact timing of the ITI start
-    trial_data.ITI_start(trial,1) = GetSecs;
-    trial_data.ITI_start_real(trial,1) = trial_data.ITI_start(trial,1) - startTime;    
-    
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
-    
-    WaitSecs(ITI/4);
-    
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
-    
-    WaitSecs(ITI/4);
-
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
-
-    WaitSecs(ITI/4);
-    
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
-    
-    WaitSecs(ITI/4);
-
-    trigger(vidObj);
-    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
-    
-    cls
     
     % Get exact timing of the ITI end 
     trial_data.ITI_end(trial,1) = GetSecs;
@@ -262,11 +249,48 @@ for trial = 1:length(trial_data)
 
     % Get the exact duration of the tone period
     trial_data.tone_time(trial,1) = trial_data.tone_end(trial,1) - trial_data.tone_start(trial,1);
+    
+    % Get exact timing of the ITI start
+    trial_data.ITI_start(trial,1) = GetSecs;
+    trial_data.ITI_start_real(trial,1) = trial_data.ITI_start(trial,1) - startTime;    
+    
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+    
+    pause(ITI/4);
+    
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+    
+    pause(ITI/4);
+
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+
+    pause(ITI/4);
+    
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+    
+    pause(ITI/4);
+
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
 
     %% Save data
     if mod(trial,10)==0
         outfile=sprintf('FC_Day1_s%s_%s.mat', subject_id, date);
-        save([sub_dir, '/' outfile],'trial_data', 'Frames', 'FramesTS');
+        save([sub_dir, '/' outfile],'trial_data', 'Frames', 'FramesTS', 'FrameOrd');
     end
 end
 
