@@ -185,7 +185,9 @@ ff=1;
 for trial = 1:length(trial_data)
     
     % Allows time to get movie setup
-    pause(10);
+    if trial == 1
+      pause(10);
+    end
     
     % Get the exact timing of the tone start
     trial_data.tone_start(trial,1) = GetSecs;
