@@ -1,17 +1,16 @@
 %% THERMAL RESPONSE STUDY SCOTT
 
 %%%%%% This script is for Day 1 of the fear conditioning experiment %%%%%%
-close all; clear 
+clc; close all; clear all;
+thisFolder=fileparts(which('ThermalImaging_Scott.m'));
+% addpath(thisFolder);
+cd(thisFolder);
 
 % Delete any active connection with the device
 imaqreset
 
 % Randomize the seed
 rand('seed',sum(100*clock));
-
-% cd(fileparts(which(mfilename)));
-% this=fileparts(which('ThermalResponseStudy_Scott.m')); 
-% addpath(this); cd(this);
 
 % Enter subject number info
 subject_id = input('What is the subject number? ');
@@ -28,20 +27,22 @@ if ~exist(sub_dir)
 
 end
 
+send_to_daq('initialize');
+
 %% Experiment parameters
 % shock_dur = 0.5;
 SampleRate = 10000;
-TimeValue = 2;
+TimeValue = 4;
 TimeValueShock = TimeValue - 0.5;
 Samples = 0:(1/SampleRate):TimeValue;
 freqS1 = 600;
 freqS2 = 350;
 toneS1 = sin(2*pi*freqS1*Samples);
 toneS2 = sin(2*pi*freqS2*Samples);
-ITI = 2;
+ITI = 10;
 
 % Is there a shock or not?
-shock = 0;
+shock = 1;
 
 % Initialize shock
 if shock == 1
@@ -57,8 +58,8 @@ AssertOpenGL;
 trial_data = dataset();
 
 % Trial numbers
-acq_trials = 4;
-ext_trials = 4;
+acq_trials = 60;
+ext_trials = 40;
 total_trials = acq_trials + ext_trials;
 
 % Create trials
@@ -75,6 +76,15 @@ trial_data.phase_num(acq_trials+1:total_trials,1) = 2;
 for i = 1:2:length(trial_data)
     trial_data.stim(i:2:length(trial_data),1) = 1;
     trial_data.stim(i+1:2:length(trial_data),1) = 0;
+end
+
+shock_trials = 1:2:(acq_trials * 1/2);
+for i = 1:total_trials
+    if intersect(trial_data.trial(i,1),shock_trials)
+        trial_data.shock(i,1) = 1;
+    else
+        trial_data.shock(i,1) = 0;
+    end
 end
 
 % Randomize with constraints (no more than 3 CS+ or 3 CS- in a row)
@@ -135,30 +145,55 @@ start(vidObj);
 % main_keyboard_index = input_device_by_prompt('Please press any key on the main keyboard\n', 'keyboard');
 disp('Starting experiment now...');
 
+
+Frames{1} = uint8(zeros(480,720,3));
+for nn = 1:length(trial_data)*8
+    Frames{nn} = uint8(zeros(480,720,3));
+end
+
 Frames = {};            % create thermal vid frame container
 FramesTS = {};          % create thermal vid timestamp container
 startTime = GetSecs;
-
+ff=1;
 %% Start trial loop
 for trial = 1:length(trial_data)
-    
+
     % Get exact timing of the ITI start
     trial_data.ITI_start(trial,1) = GetSecs;
     trial_data.ITI_start_real(trial,1) = trial_data.ITI_start(trial,1) - startTime;    
     
     trigger(vidObj);
     [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
+    Frames{ff} = frame; ff=ff+1;
     FramesTS{end+1} = ts;
     
-    WaitSecs(ITI/2);
+    WaitSecs(ITI/4);
+    
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+    
+    WaitSecs(ITI/4);
 
     trigger(vidObj);
     [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-    Frames{end+1} = frame;
+    Frames{ff} = frame; ff=ff+1;
     FramesTS{end+1} = ts;
 
-    WaitSecs(ITI/2);
+    WaitSecs(ITI/4);
+    
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
+    
+    WaitSecs(ITI/4);
+
+    trigger(vidObj);
+    [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
+    Frames{ff} = frame; ff=ff+1;
+    FramesTS{end+1} = ts;
     
     cls
     
@@ -181,22 +216,23 @@ for trial = 1:length(trial_data)
         pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
         pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
         pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
+        
         while GetSecs < trial_data.tone_start(trial,1) + TimeValue  
         end
-        if strcmp(trial_data.phase(trial,1),'Acquisition') && shock == 1
-            test_daq; % Trigger shock
+        if strcmp(trial_data.phase(trial,1),'Acquisition') && shock == 1 && trial_data.shock(trial,1) == 1
+            send_to_daq('solenoid_1',.015);
         end
     else
         sound(toneS2, SampleRate);
@@ -204,17 +240,17 @@ for trial = 1:length(trial_data)
        pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
         pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
         pause(1)
         trigger(vidObj);
         [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
-        Frames{end+1} = frame;
+        Frames{ff} = frame; ff=ff+1;
         FramesTS{end+1} = ts;
         while GetSecs < trial_data.tone_start(trial,1) + TimeValue
         end
@@ -226,10 +262,12 @@ for trial = 1:length(trial_data)
 
     % Get the exact duration of the tone period
     trial_data.tone_time(trial,1) = trial_data.tone_end(trial,1) - trial_data.tone_start(trial,1);
-    
+
     %% Save data
-    outfile=sprintf('FC_Day1_s%s_%s.mat', subject_id, date);
-    save([sub_dir, '/' outfile],'trial_data');
+    if mod(trial,10)==0
+        outfile=sprintf('FC_Day1_s%s_%s.mat', subject_id, date);
+        save([sub_dir, '/' outfile],'trial_data', 'Frames', 'FramesTS');
+    end
 end
 
 stop(vidObj); wait(vidObj);
@@ -243,10 +281,4 @@ for nn = 1:numel(Frames)
     drawnow
     pause(.1)
 end
-
-%% SAVE DATA
-outfile=sprintf('FC_NEW_Day1_s%s_%s.mat', subject_id, date);
-save([sub_dir, '/' outfile],'trial_data', 'Frames', 'FramesTS');
-
-% return
 
