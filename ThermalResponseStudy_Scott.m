@@ -184,12 +184,8 @@ ff=1;
 %% Start trial loop
 for trial = 1:length(trial_data)
     
-    % Get exact timing of the ITI end 
-    trial_data.ITI_end(trial,1) = GetSecs;
-    trial_data.ITI_end_real(trial,1) = trial_data.ITI_end(trial,1) - startTime;
-
-    % Get the exact duration of the ITI period
-    trial_data.ITI_time(trial,1) = trial_data.ITI_end(trial,1) - trial_data.ITI_start(trial,1);
+    % Allows time to get movie setup
+    pause(10);
     
     % Get the exact timing of the tone start
     trial_data.tone_start(trial,1) = GetSecs;
@@ -285,7 +281,14 @@ for trial = 1:length(trial_data)
     trigger(vidObj);
     [frame, ts] = getdata(vidObj, vidObj.FramesPerTrigger);
     Frames{ff} = frame; ff=ff+1;
-    FramesTS{end+1} = ts;
+    FramesTS{end+1} = ts;    
+        
+    % Get exact timing of the ITI end 
+    trial_data.ITI_end(trial,1) = GetSecs;
+    trial_data.ITI_end_real(trial,1) = trial_data.ITI_end(trial,1) - startTime;
+
+    % Get the exact duration of the ITI period
+    trial_data.ITI_time(trial,1) = trial_data.ITI_end(trial,1) - trial_data.ITI_start(trial,1);
 
     %% Save data
     if mod(trial,10)==0
