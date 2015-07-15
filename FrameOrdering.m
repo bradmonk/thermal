@@ -1,4 +1,4 @@
-function [FrameO] = FrameOrd()
+function [FrameO] = FrameOrdering(trial_data)
 FrameO = []; % Frame order vec
 FrameO(1:5) = NaN; % For subjects 3 and 4, first five trials are removed
 CSm = [1 2 3 4 5 6 7 8]; % CS- codes
@@ -15,7 +15,7 @@ for i = 1:acq_trials
         FrameO = [FrameO CSpu];
     end
 end
- 
+
 % Get rid of the first five trials
 for j = 1:5
     FrameO(1) = [];

@@ -1,4 +1,4 @@
-function [varargout] = ThermalImageAnalysis(varargin)
+% function [varargout] = ThermalImageAnalysis(varargin)
 %% ThermalImageAnalysis.m USAGE NOTES AND CREDITS
 %{
 
@@ -99,12 +99,12 @@ Attribution
 
 %% CLEAR CONSOLE AND CLOSE ANY OPEN FIGURES
 
-clc; close all; % clear
+clc; close all; clear
 
 
 %% CD TO DIRECTORY CONTAINING DATASET
 
-varargin = 'FC_Day1_s2_13-Jul-2015.mat'; % <-- THIS IS TEMPORARY
+varargin = 'FC_Day1_s4_13-Jul-2015.mat'; % <-- THIS IS TEMPORARY
 
 % this=fileparts(which('S3D.m')); addpath(this); cd(this);
 % cd(fileparts(which(mfilename)));
@@ -115,16 +115,20 @@ cd(fileparts(which(varargin)));
 %% ---------- LOAD THERMAL IMAGE DATASET     ----------
 
 load(varargin);
-
+load('FrameOrd_s4.mat')
 
 %% PLAYBACK THERMAL VIDEO FRAMES & SAVE DATA
 
+playNframes = 10;
+
+
+Frames(481:end) = [];
 
 numFrames = numel(Frames);
 
 for nn = 1:numel(Frames)
 
-    if mod(nn,10)==0
+    if mod(nn,playNframes)==0
     figure(1)
     imagesc(Frames{nn}(:,:,:))
     axis image
@@ -152,6 +156,7 @@ end
 size(iDUBs{1})
 
 %%
+close all
 % set(gca,'YDir','reverse')
 fh1 = figure(1); set(fh1,'OuterPosition',[200 200 820 580],'Color',[1 1 1]);
 hax1 = axes('Position',[.05 .05 .9 .9],'Color','none','XTick',[],'YTick',[],'YDir','reverse',...
@@ -161,7 +166,7 @@ ph1 = imagesc(iDUBs{2});
 
 for nn = 1:numel(iDUBs)
 
-    if mod(nn,10)==0
+    if mod(nn,playNframes)==0
     set(ph1,'CData',iDUBs{nn});
     drawnow
     pause(.1)
@@ -352,12 +357,21 @@ end
 %% GET TRIAL DATATABLE AND DETERMINE SHOCK TRIALS
 
 disp(trial_data)
-N_Acquisition_Trials = 88;
-Frames_Per_Trial_Preset = 5;
+
+	promptTxtUB = {'Enter number of acquisition trials...'};
+	dlg_TitleUB = 'Input'; num_lines = 1; presetUBval = {'60'};
+	UB = inputdlg(promptTxtUB,dlg_TitleUB,num_lines,presetUBval);
+	N_Acquisition_Trials = str2double(UB{:});
+
+	promptTxtUB = {'Enter number of frame captures per trial...'};
+	dlg_TitleUB = 'Input'; num_lines = 1; presetUBval = {'8'};
+	UB = inputdlg(promptTxtUB,dlg_TitleUB,num_lines,presetUBval);
+	Frames_Per_Trial_Preset = str2double(UB{:});
 
 shock_trials = trial_data.stim(1:N_Acquisition_Trials)>.5;
-
 Frames_Per_Trial = numel(ROIMx) / numel(shock_trials);
+
+%% THROW ERROR IF NUMBER OF FRAMES DOES NOT MATCH NUMBER OF TRIALS
 
 if Frames_Per_Trial ~= Frames_Per_Trial_Preset
     warn0 = sprintf('ERROR! \n');
@@ -377,53 +391,112 @@ end
 
 %% SEPARATE OUT SHOCK TRIALS VS NON-SHOCK TRIALS
 
-% clear ROIMx_ShockTrials ROIMx_NonShockTrials
-%     LogicMx{nn} = HiRawMxP > LowestsP;
-%     ROIMx{nn} = HiRawMxP .* LogicMx{nn};
-%     ROIAr{nn} = ROIMx{nn}(ROIMx{nn}>0);
 
-shock_trials_Ar = repmat(shock_trials,1,Frames_Per_Trial_Preset)';
-shock_trials_Ar = shock_trials_Ar(:)';
-% numel(shock_trials_Ar)
+% FrameOrd = FrameOrder(trial_data);
+disp(FrameOrd)
 
-ROIMx_ShockTrials = ROIMx(shock_trials_Ar);
-ROIMx_NonShockTrials = ROIMx(~shock_trials_Ar);
+% CSm  = [1 2 3 4 5 6 7 8];             % CS- codes
+% CSpp = [9 10 11 12 13 14 15 16];      % CS+ paired codes
+% CSpu = [17 18 19 20 21 22 23 24];     % CS+ unpaired codes
 
 
-%%
+FRAMES_CSm_F1 = ROIMx(FrameOrd==1);
+FRAMES_CSm_F2 = ROIMx(FrameOrd==2);
+FRAMES_CSm_F3 = ROIMx(FrameOrd==3);
+FRAMES_CSm_F4 = ROIMx(FrameOrd==4);
+FRAMES_CSm_F5 = ROIMx(FrameOrd==5);
+FRAMES_CSm_F6 = ROIMx(FrameOrd==6);
+FRAMES_CSm_F7 = ROIMx(FrameOrd==7);
+FRAMES_CSm_F8 = ROIMx(FrameOrd==8);
+
+FRAMES_CSpp_F1 = ROIMx(FrameOrd==9);
+FRAMES_CSpp_F2 = ROIMx(FrameOrd==10);
+FRAMES_CSpp_F3 = ROIMx(FrameOrd==11);
+FRAMES_CSpp_F4 = ROIMx(FrameOrd==12);
+FRAMES_CSpp_F5 = ROIMx(FrameOrd==13);
+FRAMES_CSpp_F6 = ROIMx(FrameOrd==14);
+FRAMES_CSpp_F7 = ROIMx(FrameOrd==15);
+FRAMES_CSpp_F8 = ROIMx(FrameOrd==16);
+
+FRAMES_CSpu_F1 = ROIMx(FrameOrd==17);
+FRAMES_CSpu_F2 = ROIMx(FrameOrd==18);
+FRAMES_CSpu_F3 = ROIMx(FrameOrd==19);
+FRAMES_CSpu_F4 = ROIMx(FrameOrd==20);
+FRAMES_CSpu_F5 = ROIMx(FrameOrd==21);
+FRAMES_CSpu_F6 = ROIMx(FrameOrd==22);
+FRAMES_CSpu_F7 = ROIMx(FrameOrd==23);
+FRAMES_CSpu_F8 = ROIMx(FrameOrd==24);
+
+
+%% -- CURRENT FRAME OF INTEREST
+
+FRAMES_CSm = FRAMES_CSm_F5;
+% FRAMES_CSpp = FRAMES_CSpp_F1;
+FRAMES_CSpu = FRAMES_CSpu_F5;
 
 
 
+% -- PLOT IMAGESC REPLAY OF PIXELS THAT PASSED PCT% THRESHOLD
+
+close all
+% set(gca,'YDir','reverse')
+fh1 = figure(1); set(fh1,'OuterPosition',[100 200 1400 600],'Color',[1 1 1]);
+hax1 = axes('Position',[.03 .03 .45 .9],'Color','none','XTick',[],'YTick',[],'YDir','reverse',...
+           'NextPlot','replacechildren','SortMethod','childorder');
+hax2 = axes('Position',[.52 .03 .45 .9],'Color','none','XTick',[],'YTick',[],'YDir','reverse',...
+           'NextPlot','replacechildren','SortMethod','childorder');
+            colormap('jet');
+
+% axes(hax1);
+ph1 = imagesc(FRAMES_CSm{2},'Parent',hax1);
+ph2 = imagesc(FRAMES_CSpu{2},'Parent',hax2);
 
 
-
-
-%%
-mean_ROIMx_ShockTrials = [];
-mean_ROIMx_NonShockTrials  = [];
-
-mm=1;
-for nn = 3:5:numel(ROIMx_ShockTrials)
-
-mean_ROIMx_ShockTrials(mm) = mean(ROIMx_ShockTrials{nn}(ROIMx_ShockTrials{nn}>0));
-mean_ROIMx_NonShockTrials(mm) = mean(ROIMx_NonShockTrials{nn}(ROIMx_NonShockTrials{nn}>0));
-mm=mm+1;
-
+for nn = 1:numel(FRAMES_CSpu)
+    set(ph1,'CData',FRAMES_CSm{nn});
+    set(ph2,'CData',FRAMES_CSpu{nn});
+    pause(.1)
 end
 
 
-    smeth = {'moving','lowess','loess','sgolay','rlowess','rloess'};
-    degSm = .25; typSm = 5;
-    smean_ROIMx_ShockTrials = smooth(mean_ROIMx_ShockTrials,degSm,smeth{typSm});
-    smean_ROIMx_NonShockTrials = smooth(mean_ROIMx_NonShockTrials,degSm,smeth{typSm});
 
+mm=1;
+for nn = 1:numel(FRAMES_CSm)
+    FRAMES_CSm_PixelMean(mm) = mean(FRAMES_CSm{nn}(FRAMES_CSm{nn}>0));
+    mm=mm+1;
+end
+
+mm=1;
+for nn = 1:numel(FRAMES_CSpu)
+    FRAMES_CSpu_PixelMean(mm) = mean(FRAMES_CSpu{nn}(FRAMES_CSpu{nn}>0));
+    mm=mm+1;
+end
+
+FrameDiff = numel(FRAMES_CSm_PixelMean)-numel(FRAMES_CSpu_PixelMean);
+FRAMES_CSm_PixelMean(1:FrameDiff) = [];
+% numel(FRAMES_CSm_PixelMean)
+
+% MEAN SMOOTHING
+
+smeth = {'moving','lowess','loess','sgolay','rlowess','rloess'};
+degSm = .3; typSm = 6;
+FRAMES_CSm_PixelMeanSmooth = smooth(FRAMES_CSm_PixelMean,degSm,smeth{typSm});
+FRAMES_CSpu_PixelMeanSmooth = smooth(FRAMES_CSpu_PixelMean,degSm,smeth{typSm});
+
+
+
+% PLOT MEANS
 
 fh1=figure('Position',[600 450 1000 500],'Color','w');
 hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
 hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
 
-plot(hax1,[smean_ROIMx_ShockTrials smean_ROIMx_NonShockTrials])
-plot(hax2,[mean_ROIMx_ShockTrials' mean_ROIMx_NonShockTrials'])
+ph1 = plot(hax1,[FRAMES_CSm_PixelMean' FRAMES_CSpu_PixelMean']);
+ph2 = plot(hax2,[FRAMES_CSm_PixelMeanSmooth FRAMES_CSpu_PixelMeanSmooth]);
+
+leg1 = legend(ph1,{'CSm','CSpu'});
+     set(leg1, 'Location','SouthWest', 'Color',[1 1 1],'FontSize',14,'Box','off');
+pause(2)
 
 % -- Boxplot & Histogram
 
@@ -432,19 +505,21 @@ fh1=figure('Position',[600 450 1000 500],'Color','w');
 hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
 hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
 
-    boxplot(hax1,[mean_ROIMx_ShockTrials' mean_ROIMx_NonShockTrials'] ...
+    boxplot(hax1,[FRAMES_CSm_PixelMean' FRAMES_CSpu_PixelMean'] ...
 	,'notch','on' ...
 	,'whisker',1 ...
 	,'widths',.8 ...
 	,'factorgap',[0] ...
 	,'medianstyle','target');
-	set(hax1,'XTickLabel',{'ShockTrials','NonShockTrials'},'Position',[.04 .05 .25 .9])
+	set(hax1,'XTickLabel',{'CSm','CSpu'},'Position',[.04 .05 .25 .9])
     pause(2)
 
+
+
     % axes(GUIfh.Children(1).Children(1));
-hist(hax2,mean_ROIMx_ShockTrials(:),15);
+hist(hax2,FRAMES_CSm_PixelMean(:),15);
 hold on
-hist(hax2,mean_ROIMx_NonShockTrials(:),15);
+hist(hax2,FRAMES_CSpu_PixelMean(:),15);
     h = findobj(gca,'Type','patch');
     h(2).FaceColor = [0 0.5 0.5];
     h(2).EdgeColor = 'w';
@@ -452,6 +527,13 @@ hist(hax2,mean_ROIMx_NonShockTrials(:),15);
 
 
 
+
+
+
+
+%% NOTES AND MISC CODE
+
+%{
 
 %% NUMBER OF PIXELS PAST CRITERIA
 
@@ -482,10 +564,6 @@ hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
 	set(hax1,'XTickLabel',{'ShockTrials','NonShockTrials'},'Position',[.04 .05 .25 .9])
     pause(2)
 
-
-%% NOTES AND MISC CODE
-
-%{
 
 iDUBs = Frames{2};
 
@@ -640,4 +718,4 @@ spf0=sprintf('Taking average of background pixels');
 
 %%
 varargout = {};
-end
+% end
