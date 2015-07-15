@@ -17,7 +17,7 @@ artwork/*
 ScriptArchive/*
 Tools/*
 
-# data / non-code
+data/*
 *.mat
 *.avi
 *.m~
