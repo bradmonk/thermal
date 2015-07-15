@@ -393,47 +393,241 @@ end
 
 
 % FrameOrd = FrameOrder(trial_data);
-disp(FrameOrd)
+% disp(FrameOrd)
 
 % CSm  = [1 2 3 4 5 6 7 8];             % CS- codes
 % CSpp = [9 10 11 12 13 14 15 16];      % CS+ paired codes
 % CSpu = [17 18 19 20 21 22 23 24];     % CS+ unpaired codes
 
 
-FRAMES_CSm_F1 = ROIMx(FrameOrd==1);
-FRAMES_CSm_F2 = ROIMx(FrameOrd==2);
-FRAMES_CSm_F3 = ROIMx(FrameOrd==3);
-FRAMES_CSm_F4 = ROIMx(FrameOrd==4);
-FRAMES_CSm_F5 = ROIMx(FrameOrd==5);
-FRAMES_CSm_F6 = ROIMx(FrameOrd==6);
-FRAMES_CSm_F7 = ROIMx(FrameOrd==7);
-FRAMES_CSm_F8 = ROIMx(FrameOrd==8);
+% FRAMES_CSm_F1 = ROIMx(FrameOrd==1);
+% FRAMES_CSm_F2 = ROIMx(FrameOrd==2);
+% FRAMES_CSm_F3 = ROIMx(FrameOrd==3);
+% FRAMES_CSm_F4 = ROIMx(FrameOrd==4);
+% FRAMES_CSm_F5 = ROIMx(FrameOrd==5);
+% FRAMES_CSm_F6 = ROIMx(FrameOrd==6);
+% FRAMES_CSm_F7 = ROIMx(FrameOrd==7);
+% FRAMES_CSm_F8 = ROIMx(FrameOrd==8);
+% 
+% FRAMES_CSpp_F1 = ROIMx(FrameOrd==9);
+% FRAMES_CSpp_F2 = ROIMx(FrameOrd==10);
+% FRAMES_CSpp_F3 = ROIMx(FrameOrd==11);
+% FRAMES_CSpp_F4 = ROIMx(FrameOrd==12);
+% FRAMES_CSpp_F5 = ROIMx(FrameOrd==13);
+% FRAMES_CSpp_F6 = ROIMx(FrameOrd==14);
+% FRAMES_CSpp_F7 = ROIMx(FrameOrd==15);
+% FRAMES_CSpp_F8 = ROIMx(FrameOrd==16);
+% 
+% FRAMES_CSpu_F1 = ROIMx(FrameOrd==17);
+% FRAMES_CSpu_F2 = ROIMx(FrameOrd==18);
+% FRAMES_CSpu_F3 = ROIMx(FrameOrd==19);
+% FRAMES_CSpu_F4 = ROIMx(FrameOrd==20);
+% FRAMES_CSpu_F5 = ROIMx(FrameOrd==21);
+% FRAMES_CSpu_F6 = ROIMx(FrameOrd==22);
+% FRAMES_CSpu_F7 = ROIMx(FrameOrd==23);
+% FRAMES_CSpu_F8 = ROIMx(FrameOrd==24);
 
-FRAMES_CSpp_F1 = ROIMx(FrameOrd==9);
-FRAMES_CSpp_F2 = ROIMx(FrameOrd==10);
-FRAMES_CSpp_F3 = ROIMx(FrameOrd==11);
-FRAMES_CSpp_F4 = ROIMx(FrameOrd==12);
-FRAMES_CSpp_F5 = ROIMx(FrameOrd==13);
-FRAMES_CSpp_F6 = ROIMx(FrameOrd==14);
-FRAMES_CSpp_F7 = ROIMx(FrameOrd==15);
-FRAMES_CSpp_F8 = ROIMx(FrameOrd==16);
+FRAMES_CSm_F{1} = ROIMx(FrameOrd==1);
+FRAMES_CSm_F{2} = ROIMx(FrameOrd==2);
+FRAMES_CSm_F{3} = ROIMx(FrameOrd==3);
+FRAMES_CSm_F{4} = ROIMx(FrameOrd==4);
+FRAMES_CSm_F{5} = ROIMx(FrameOrd==5);
+FRAMES_CSm_F{6} = ROIMx(FrameOrd==6);
+FRAMES_CSm_F{7} = ROIMx(FrameOrd==7);
+FRAMES_CSm_F{8} = ROIMx(FrameOrd==8);
 
-FRAMES_CSpu_F1 = ROIMx(FrameOrd==17);
-FRAMES_CSpu_F2 = ROIMx(FrameOrd==18);
-FRAMES_CSpu_F3 = ROIMx(FrameOrd==19);
-FRAMES_CSpu_F4 = ROIMx(FrameOrd==20);
-FRAMES_CSpu_F5 = ROIMx(FrameOrd==21);
-FRAMES_CSpu_F6 = ROIMx(FrameOrd==22);
-FRAMES_CSpu_F7 = ROIMx(FrameOrd==23);
-FRAMES_CSpu_F8 = ROIMx(FrameOrd==24);
+FRAMES_CSpp_F{1} = ROIMx(FrameOrd==9);
+FRAMES_CSpp_F{2} = ROIMx(FrameOrd==10);
+FRAMES_CSpp_F{3} = ROIMx(FrameOrd==11);
+FRAMES_CSpp_F{4} = ROIMx(FrameOrd==12);
+FRAMES_CSpp_F{5} = ROIMx(FrameOrd==13);
+FRAMES_CSpp_F{6} = ROIMx(FrameOrd==14);
+FRAMES_CSpp_F{7} = ROIMx(FrameOrd==15);
+FRAMES_CSpp_F{8} = ROIMx(FrameOrd==16);
+
+FRAMES_CSpu_F{1} = ROIMx(FrameOrd==17);
+FRAMES_CSpu_F{2} = ROIMx(FrameOrd==18);
+FRAMES_CSpu_F{3} = ROIMx(FrameOrd==19);
+FRAMES_CSpu_F{4} = ROIMx(FrameOrd==20);
+FRAMES_CSpu_F{5} = ROIMx(FrameOrd==21);
+FRAMES_CSpu_F{6} = ROIMx(FrameOrd==22);
+FRAMES_CSpu_F{7} = ROIMx(FrameOrd==23);
+FRAMES_CSpu_F{8} = ROIMx(FrameOrd==24);
 
 
 %% -- CURRENT FRAME OF INTEREST
+for ff = 1:numel(FRAMES_CSpp_F)
 
-FRAMES_CSm = FRAMES_CSm_F5;
-% FRAMES_CSpp = FRAMES_CSpp_F1;
-FRAMES_CSpu = FRAMES_CSpu_F5;
+    FRAMES_CSm = FRAMES_CSm_F{ff};
+    FRAMES_CSpp = FRAMES_CSpp_F{ff};
+    FRAMES_CSpu = FRAMES_CSpu_F{ff};
 
+
+    mm=1;
+    for nn = 1:numel(FRAMES_CSm)
+        FRAMES_CSm_PixelMean(mm) = mean(FRAMES_CSm{nn}(FRAMES_CSm{nn}>0));
+        mm=mm+1;
+    end
+
+    mm=1;
+    for nn = 1:numel(FRAMES_CSpu)
+        FRAMES_CSpp_PixelMean(mm) = mean(FRAMES_CSpp{nn}(FRAMES_CSpp{nn}>0));
+        mm=mm+1;
+    end
+
+    mm=1;
+    for nn = 1:numel(FRAMES_CSpu)
+        FRAMES_CSpu_PixelMean(mm) = mean(FRAMES_CSpu{nn}(FRAMES_CSpu{nn}>0));
+        mm=mm+1;
+    end
+
+
+    FRAMES_CSm_means(:,ff) = FRAMES_CSm_PixelMean';
+    FRAMES_CSpp_means(:,ff) = FRAMES_CSpp_PixelMean';
+    FRAMES_CSpu_means(:,ff) = FRAMES_CSpu_PixelMean';
+
+end
+% clear FRAMES_CSm_means FRAMES_CSpp_means FRAMES_CSpu_means
+FRAMES_CSm_means(1:2:end,:) = [];
+% size(FRAMES_CSm_means)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%					FINAL OUTPUT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fh1=figure('Position',[200 200 1200 700],'Color','w');
+hax1=axes('Position',[.07 .07 .88 .88],'Color','none');
+% hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+% hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+%-------------------------------------------------------------
+c1= [.9 .2 .2]; c2= [.2 .4 .6]; c3= [.4 .8 .4]; c4= [.6 .6 .6]; c5= [.01 .9 .01];
+c11=[.9 .3 .3]; c22=[.3 .5 .7]; c33=[.5 .9 .5]; c44=[.7 .7 .7]; c55=[.01 .9 .01];
+applered= [.9 .2 .2]; oceanblue= [.2 .4 .6]; neongreen = [.1 .9 .1];
+liteblue = [.2 .9 .9]; hotpink=[.9 .1 .9];
+c11 = 'none'; %c22 = 'none';
+%------------------------------------------------
+
+%===========================================================%
+% FIG1 TOP LEFT: Poly & Depoly Events
+%===========================================================%
+
+	%==============================================%
+	MuDATA=FRAMES_CSpp_means; repDATA=size(FRAMES_CSpp_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+
+    %----------------------
+%     HaxTL1 = axes('Position',axTot);
+    %----------------------
+
+[ph1, po1] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c1,'alpha','transparency', 0.4);
+	hold on
+
+	%==============================================%
+	MuDATA=FRAMES_CSpu_means; repDATA=size(FRAMES_CSpu_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+	
+[ph2, po2] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c2,'alpha','transparency', 0.4);
+
+	axis tight; hold on;
+
+
+
+	%==============================================%
+	MuDATA=FRAMES_CSm_means; repDATA=size(FRAMES_CSm_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+	
+[ph3, po3] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c2,'alpha','transparency', 0.4);
+
+	axis tight; hold on;
+
+
+
+	
+    leg1 = legend([ph1,ph2,ph3],{' CS+ paired',' CS+ unpaired',' CS- trial'});
+    set(leg1, 'Location','NorthWest', 'Color', [1 1 1],'FontSize',16,'Box','off');
+    set(leg1, 'Position', leg1.Position .* [1 .92 1 1.5])
+
+
+        MS1 = 5; MS2 = 2;
+    set(ph1,'LineStyle','-','Color',c1,'LineWidth',5,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c1);
+    set(ph2,'LineStyle','-.','Color',c2,'LineWidth',5,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c2);
+    set(ph3,'LineStyle',':','Color',c3,'LineWidth',4,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c3);
+
+    hTitle  = title ('\fontsize{20} Thermal Signature Per Frame Capture');
+    hXLabel = xlabel('\fontsize{16} Frame Captures Per Trial');
+    hYLabel = ylabel('\fontsize{16} Thermal Signature (+/- SEM)');
+    set(gca,'FontName','Helvetica','FontSize',12);
+    set([hTitle, hXLabel, hYLabel],'FontName','Century Gothic');
+    set(gca,'Box','off','TickDir','out','TickLength',[.01 .01], ...
+    'XMinorTick','off','YMinorTick','on','YGrid','on', ...
+    'XColor',[.3 .3 .3],'YColor',[.3 .3 .3],'LineWidth',2);
+
+%     %------
+%     % Extra axis for boxing
+%     haxes1 = gca; % handle to axes
+% 	haxes1_pos = get(haxes1,'Position'); % store position of first axes
+% 	haxes2 = axes('Position',haxes1_pos,'Color','none',...
+% 				  'XAxisLocation','top','YAxisLocation','right');
+% 	set(gca,'Box','off','TickDir','out','TickLength',[.01 .01], ...
+% 	'XMinorTick','off','YMinorTick','off','XGrid','off','YGrid','off', ...
+% 	'XColor',[.3 .3 .3],'YColor',[.3 .3 .3],'LineWidth',2, ...
+%     'XTick', [], 'YTick', []);
+%     %------
+%===========================================================%
+%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+return
+%%
 
 
 % -- PLOT IMAGESC REPLAY OF PIXELS THAT PASSED PCT% THRESHOLD
