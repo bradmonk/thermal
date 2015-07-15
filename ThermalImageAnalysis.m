@@ -453,6 +453,36 @@ hist(hax2,mean_ROIMx_NonShockTrials(:),15);
 
 
 
+%% NUMBER OF PIXELS PAST CRITERIA
+
+N_ROIMx_ShockTrials = [];
+N_ROIMx_NonShockTrials  = [];
+
+mm=1;
+for nn = 3:5:numel(ROIMx_ShockTrials)
+
+N_ROIMx_ShockTrials(mm) = numel(ROIMx_ShockTrials{nn}(ROIMx_ShockTrials{nn}>0));
+N_ROIMx_NonShockTrials(mm) = numel(ROIMx_NonShockTrials{nn}(ROIMx_NonShockTrials{nn}>0));
+mm=mm+1;
+
+end
+
+
+close all
+fh1=figure('Position',[600 450 1000 500],'Color','w');
+hax1=axes('Position',[.07 .1 .4 .8],'Color','none');
+hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+
+    boxplot(hax1,[N_ROIMx_ShockTrials' N_ROIMx_NonShockTrials'] ...
+	,'notch','on' ...
+	,'whisker',1 ...
+	,'widths',.8 ...
+	,'factorgap',[0] ...
+	,'medianstyle','target');
+	set(hax1,'XTickLabel',{'ShockTrials','NonShockTrials'},'Position',[.04 .05 .25 .9])
+    pause(2)
+
+
 %% NOTES AND MISC CODE
 
 %{
