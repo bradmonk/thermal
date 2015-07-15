@@ -104,7 +104,8 @@ clc; close all; clear
 
 %% CD TO DIRECTORY CONTAINING DATASET
 
-varargin = 'FC_Day1_s4_13-Jul-2015.mat'; % <-- THIS IS TEMPORARY
+varargin = 'FC_Day1_s6_14-Jul-2015.mat'; % <-- THIS IS TEMPORARY
+% load('FrameOrd_s4.mat')
 
 % this=fileparts(which('S3D.m')); addpath(this); cd(this);
 % cd(fileparts(which(mfilename)));
@@ -115,7 +116,7 @@ cd(fileparts(which(varargin)));
 %% ---------- LOAD THERMAL IMAGE DATASET     ----------
 
 load(varargin);
-load('FrameOrd_s4.mat')
+
 
 %% PLAYBACK THERMAL VIDEO FRAMES & SAVE DATA
 
@@ -456,6 +457,10 @@ FRAMES_CSpu_F{8} = ROIMx(FrameOrd==24);
 
 
 %% -- CURRENT FRAME OF INTEREST
+clear FRAMES_CSm FRAMES_CSpp FRAMES_CSpu FRAMES_CSm_means FRAMES_CSpp_means FRAMES_CSpu_means
+
+
+
 for ff = 1:numel(FRAMES_CSpp_F)
 
     FRAMES_CSm = FRAMES_CSm_F{ff};
@@ -490,6 +495,19 @@ end
 % clear FRAMES_CSm_means FRAMES_CSpp_means FRAMES_CSpu_means
 FRAMES_CSm_means(1:2:end,:) = [];
 % size(FRAMES_CSm_means)
+
+
+%---------------------------------------------
+% % THESE CAN BE FLIPPED FOR DIFFERENT PLOTS
+    FRAMES_CSm_means_8Frames = FRAMES_CSm_means';
+    FRAMES_CSpp_mean_s8Frames = FRAMES_CSpp_means';
+    FRAMES_CSpu_means_8Frames = FRAMES_CSpu_means';
+%{.
+    FRAMES_CSm_means = FRAMES_CSm_means_8Frames;
+    FRAMES_CSpp_means = FRAMES_CSpp_mean_s8Frames;
+    FRAMES_CSpu_means = FRAMES_CSpu_means_8Frames;
+%}
+%---------------------------------------------
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%					FINAL OUTPUT
