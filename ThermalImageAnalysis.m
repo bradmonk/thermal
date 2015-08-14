@@ -102,18 +102,21 @@ Attribution
 clc; close all; clear
 
 
+
 %% CD TO DIRECTORY CONTAINING DATASET
 
-varargin = 'FCs4.mat'; % <-- THIS IS TEMPORARY
-load('FrameOrd_s4.mat')
-
-% this=fileparts(which('S3D.m')); addpath(this); cd(this);
+thisdir=fileparts(which('ThermalImageAnalysis.m'));
+cd(thisdir); addpath(thisdir); addpath([thisdir '/data']);
 % cd(fileparts(which(mfilename)));
-cd(fileparts(which(varargin)));
 
 
+%% VARARGIN == PARTICIPANT ID  (TEMPORARILY HARD-CODED)
 
-%% ---------- LOAD THERMAL IMAGE DATASET     ----------
+varargin = 'FCs7.mat';
+
+if strcmp(varargin,'FCs4.mat')
+    load('FrameOrd_s4.mat')
+end
 
 load(varargin);
 
@@ -122,22 +125,21 @@ load(varargin);
 
 playNframes = 10;
 
-
 Frames(481:end) = [];
 
 numFrames = numel(Frames);
 
-for nn = 1:numel(Frames)
-
-    if mod(nn,playNframes)==0
-    figure(1)
-    imagesc(Frames{nn}(:,:,:))
-    axis image
-    drawnow
-    pause(.1)
-    end
-
-end
+% for nn = 1:numel(Frames)
+% 
+%     if mod(nn,playNframes)==0
+%     figure(1)
+%     imagesc(Frames{nn}(:,:,:))
+%     axis image
+%     drawnow
+%     pause(.1)
+%     end
+% 
+% end
 
 
 
@@ -155,6 +157,10 @@ for nn = 1:numel(Frames)
 end
 
 size(iDUBs{1})
+
+%%
+
+iDmat = cell2mat(iDUBs);
 
 %%
 close all
@@ -187,10 +193,16 @@ hax1 = axes('Position',[.05 .05 .9 .9],'Color','none','XTick',[],'YTick',[],...
            'NextPlot','replacechildren','SortMethod','childorder');
             colormap('jet'); % set(gca,'YDir','reverse')
 
-    mesh(iDUB)
-        view([162 84])
+mesh(iDUB)
+    ov=[175 88];
+    view(ov)
 
-    pause(2)
+    for nn=1:50
+        view(ov-nn)
+        pause(.1)
+    end
+
+pause(2)
 
 
 %% USE MOUSE TO DRAW BOX AROUND BACKGROUND AREA
@@ -686,9 +698,11 @@ FRAMES_CSm_means(1:2:end,:) = [];
 
 %---------------------------------------------
 % % THESE CAN BE FLIPPED FOR DIFFERENT PLOTS
+%{.
     FRAMES_CSm_means_8Frames = FRAMES_CSm_means';
     FRAMES_CSpp_mean_s8Frames = FRAMES_CSpp_means';
     FRAMES_CSpu_means_8Frames = FRAMES_CSpu_means';
+%}
 %{
     FRAMES_CSm_means = FRAMES_CSm_means_8Frames;
     FRAMES_CSpp_means = FRAMES_CSpp_mean_s8Frames;
@@ -799,6 +813,168 @@ c11 = 'none'; %c22 = 'none';
     'XMinorTick','off','YMinorTick','on','YGrid','on', ...
     'XColor',[.3 .3 .3],'YColor',[.3 .3 .3],'LineWidth',2);
 
+
+
+
+
+
+
+%%
+clear FRAMES_CSm FRAMES_CSpp FRAMES_CSpu FRAMES_CSm_means FRAMES_CSpp_means FRAMES_CSpu_means
+%   FRAMES_CSm_F = {1x30 cell} x 8
+
+% ff will loop through frame-captures 1 - 8 on each trial
+for ff = 1:8
+
+    FRAMES_CSm = FRAMES_CSm_F{ff}; 
+    FRAMES_CSpp = FRAMES_CSpp_F{ff};
+    FRAMES_CSpu = FRAMES_CSpu_F{ff};
+
+    % nn will loop through each of the 15 (or 30) trials
+    for nn = 1:numel(FRAMES_CSm)
+        PIXELS_IN_ROI = FRAMES_CSm{nn}.*mask1;
+        CSmMu_PIXELS_IN_ROI(nn) = mean(PIXELS_IN_ROI(PIXELS_IN_ROI>0));
+    end
+
+    for nn = 1:numel(FRAMES_CSpp)
+        PIXELS_IN_ROI = FRAMES_CSpp{nn}.*mask1;
+        CSppMu_PIXELS_IN_ROI(nn) = mean(PIXELS_IN_ROI(PIXELS_IN_ROI>0));
+    end
+
+    for nn = 1:numel(FRAMES_CSpu)
+        PIXELS_IN_ROI = FRAMES_CSpu{nn}.*mask1;
+        CSpuMu_PIXELS_IN_ROI(nn) = mean(PIXELS_IN_ROI(PIXELS_IN_ROI>0));
+    end
+
+
+    FRAMES_CSm_means(:,ff) = CSmMu_PIXELS_IN_ROI';
+    FRAMES_CSpp_means(:,ff) = CSppMu_PIXELS_IN_ROI';
+    FRAMES_CSpu_means(:,ff) = CSpuMu_PIXELS_IN_ROI';
+
+end
+% clear FRAMES_CSm_means FRAMES_CSpp_means FRAMES_CSpu_means
+FRAMES_CSm_means(1:2:end,:) = [];
+% size(FRAMES_CSm_means)
+
+
+
+
+%---------------------------------------------
+% % THESE CAN BE FLIPPED FOR DIFFERENT PLOTS
+%{
+    FRAMES_CSm_means_8Frames = FRAMES_CSm_means';
+    FRAMES_CSpp_mean_s8Frames = FRAMES_CSpp_means';
+    FRAMES_CSpu_means_8Frames = FRAMES_CSpu_means';
+%}
+%{.
+    FRAMES_CSm_means = FRAMES_CSm_means_8Frames;
+    FRAMES_CSpp_means = FRAMES_CSpp_mean_s8Frames;
+    FRAMES_CSpu_means = FRAMES_CSpu_means_8Frames;
+%}
+%---------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%					FINAL OUTPUT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fh1=figure('Position',[100 200 1200 700],'Color','w');
+hax1=axes('Position',[.07 .07 .88 .88],'Color','none');
+% hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+% hax2=axes('Position',[.55 .1 .4 .8],'Color','none');
+%-------------------------------------------------------------
+c1= [.9 .2 .2]; c2= [.2 .4 .6]; c3= [.4 .8 .4]; c4= [.6 .6 .6]; c5= [.01 .9 .01];
+c11=[.9 .3 .3]; c22=[.3 .5 .7]; c33=[.5 .9 .5]; c44=[.7 .7 .7]; c55=[.01 .9 .01];
+applered= [.9 .2 .2]; oceanblue= [.2 .4 .6]; neongreen = [.1 .9 .1];
+liteblue = [.2 .9 .9]; hotpink=[.9 .1 .9];
+c11 = 'none'; %c22 = 'none';
+%------------------------------------------------
+
+%===========================================================%
+% FIG1 TOP LEFT: Poly & Depoly Events
+%===========================================================%
+
+	%==============================================%
+	MuDATA=FRAMES_CSpp_means; repDATA=size(FRAMES_CSpp_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+
+    %----------------------
+%     HaxTL1 = axes('Position',axTot);
+    %----------------------
+
+[ph1, po1] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c1,'alpha','transparency', 0.4);
+	hold on
+
+	%==============================================%
+	MuDATA=FRAMES_CSpu_means; repDATA=size(FRAMES_CSpu_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+	
+[ph2, po2] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c2,'alpha','transparency', 0.4);
+
+	axis tight; hold on;
+
+
+
+	%==============================================%
+	MuDATA=FRAMES_CSm_means; repDATA=size(FRAMES_CSm_means,2);
+	%------------------------------
+	Mu = mean(MuDATA,2)';		Sd = std(MuDATA,0,2)';		Se = Sd./sqrt(repDATA);
+	y_Mu = Mu;				x_Mu = 1:(size(y_Mu,2));	e_Mu = Se;
+	xx_Mu = 1:0.1:max(x_Mu);
+	% yy_Mu = spline(x_Mu,y_Mu,xx_Mu);	% ee_Mu = spline(x_Mu,e_Mu,xx_Mu);
+	yy_Mu = interp1(x_Mu,y_Mu,xx_Mu,'pchip');
+	ee_Mu = interp1(x_Mu,e_Mu,xx_Mu,'pchip');
+	p_Mu = polyfit(x_Mu,Mu,3);
+	x2_Mu = 1:0.1:max(x_Mu);	y2_Mu = polyval(p_Mu,x2_Mu);
+	XT_Mu = xx_Mu';				YT_Mu = yy_Mu';		ET_Mu = ee_Mu';
+	%==============================================%
+	
+[ph3, po3] = boundedline(XT_Mu,YT_Mu, ET_Mu,'cmap',c3,'alpha','transparency', 0.4);
+
+	axis tight; hold on;
+
+
+
+	
+    leg1 = legend([ph1,ph2,ph3],{' CS+ paired',' CS+ unpaired',' CS- trial'});
+    set(leg1, 'Location','NorthWest', 'Color', [1 1 1],'FontSize',16,'Box','off');
+    set(leg1, 'Position', leg1.Position .* [1 .92 1 1.5])
+
+
+        MS1 = 5; MS2 = 2;
+    set(ph1,'LineStyle','-','Color',c1,'LineWidth',5,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c1);
+    set(ph2,'LineStyle','-.','Color',c2,'LineWidth',5,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c2);
+    set(ph3,'LineStyle',':','Color',c3,'LineWidth',4,...
+        'Marker','none','MarkerSize',MS1,'MarkerEdgeColor',c3);
+
+    hTitle  = title ('\fontsize{20} Thermal Signature Per Frame Capture');
+    hXLabel = xlabel('\fontsize{16} Frame Captures Per Trial');
+    hYLabel = ylabel('\fontsize{16} Thermal Signature (+/- SEM)');
+    set(gca,'FontName','Helvetica','FontSize',12);
+    set([hTitle, hXLabel, hYLabel],'FontName','Century Gothic');
+    set(gca,'Box','off','TickDir','out','TickLength',[.01 .01], ...
+    'XMinorTick','off','YMinorTick','on','YGrid','on', ...
+    'XColor',[.3 .3 .3],'YColor',[.3 .3 .3],'LineWidth',2);
 
 
 

@@ -2,7 +2,7 @@
 
 %%%%%% This script is for Day 1 of the fear conditioning experiment %%%%%%
 clc; close all; clear all;
-thisFolder=fileparts(which('ThermalImaging_Scott.m'));
+thisFolder=fileparts(which('ThermalResponseStudy.m'));
 % addpath(thisFolder);
 cd(thisFolder);
 
